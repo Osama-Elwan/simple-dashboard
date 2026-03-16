@@ -8,8 +8,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
       /* ------------------------------
-   GLOBAL
------------------------------- */
+         GLOBAL
+      ------------------------------ */
       body {
         font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         background-color: #f5f7fa;
@@ -20,8 +20,8 @@
       }
 
       /* ------------------------------
-   HEADER
------------------------------- */
+         HEADER
+      ------------------------------ */
       .header {
         display: flex;
         justify-content: space-between;
@@ -42,8 +42,8 @@
       }
 
       /* ------------------------------
-   FILTERS
------------------------------- */
+         FILTERS
+      ------------------------------ */
       .filters {
         display: flex;
         gap: 20px;
@@ -78,8 +78,8 @@
       }
 
       /* ------------------------------
-   KPI CARDS
------------------------------- */
+         KPI CARDS
+      ------------------------------ */
       .kpis {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -123,8 +123,8 @@
       }
 
       /* ------------------------------
-   CHARTS
------------------------------- */
+         CHARTS
+      ------------------------------ */
       .charts {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -147,8 +147,8 @@
       }
 
       /* ------------------------------
-   PROJECTS TABLE
------------------------------- */
+         TABLES
+      ------------------------------ */
       h3 {
         margin-top: 50px;
         font-size: 1.8rem;
@@ -190,8 +190,8 @@
       }
 
       /* ------------------------------
-   STATUS BADGES
------------------------------- */
+         STATUS BADGES
+      ------------------------------ */
       .status-badge {
         padding: 6px 12px;
         border-radius: 20px;
@@ -213,8 +213,13 @@
       .money {
         font-weight: 700;
       }
+
+      .subheading {
+        margin-top: 10px;
+        color: #4a5568;
+        font-size: 1rem;
+      }
     </style>
-    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <div class="header">
@@ -300,7 +305,8 @@
         <canvas id="projectStatusChart"></canvas>
       </div>
     </div>
-    <h3 style="margin-top: 40px">Company Virsual Comparison</h3>
+
+    <h3 style="margin-top: 40px">Company Visual Comparison</h3>
 
     <div class="comparison-filter">
       <label for="companySelect">Select Company:</label>
@@ -401,41 +407,46 @@
       </div>
     </div>
 
+    <!-- ============================
+         Projects (Your Required Behavior)
+         ============================ -->
     <h3 style="margin-top: 40px">Projects</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Department</th>
-          <th>Budget</th>
-          <th>Spent</th>
-          <th>Remaining</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="projectsTableBody"></tbody>
-    </table>
+
+    <!-- Project selector -->
+    <div class="filters" style="margin-bottom: 16px">
+      <label for="projectSelect">Select Project:</label>
+      <select id="projectSelect">
+        <option value="">-- All Projects --</option>
+        <!-- Options injected by JS -->
+      </select>
+    </div>
+
+    <!-- One container; JS renders the appropriate view -->
+    <div id="projectsContainer"></div>
 
     <script>
+      // Companies comparison handling
       document
         .getElementById("companySelect")
         .addEventListener("change", function () {
-          // Get selected value
           const selected = this.value;
-
-          // All comparison blocks
           const blocks = document.querySelectorAll(".comparison-block");
-
-          // Hide all blocks
-          blocks.forEach((block) => {
-            block.style.display = "none";
-          });
-
-          // Show selected block if any
+          blocks.forEach((block) => (block.style.display = "none"));
           if (selected) {
             document.getElementById(selected).style.display = "block";
           }
         });
+
+      // --------------------------
+      // Data
+      // --------------------------
+      const DEPARTMENTS = [
+        "Construction",
+        "Finance",
+        "Procurement",
+        "HR",
+        "IT",
+      ];
 
       const sampleData = {
         revenueExpenses: {
@@ -462,31 +473,241 @@
           { name: "Project E", dept: "IT", status: "progress" },
           { name: "Project F", dept: "Construction", status: "progress" },
         ],
-        departments: {
-          labels: ["Construction", "Finance", "Procurement", "HR", "IT"],
-        },
+        departments: { labels: [...DEPARTMENTS] },
       };
 
       let revenueChart, profitChart, departmentChart, projectStatusChart;
 
+      // --------------------------
+      // Helper functions
+      // --------------------------
+      function formatMoney(n) {
+        return Math.round(n)
+          .toString()
+          .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      }
+
+      function getRandomNumber(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
+      function randomPositiveArray(len) {
+        const arr = Array.from({ length: len }, () => Math.random() + 0.2); // avoid zeros
+        const sum = arr.reduce((a, b) => a + b, 0);
+        return arr.map((v) => v / sum);
+      }
+
+      function allocateByWeights(total, weights) {
+        // allocate numbers so their rounded sum equals total
+        const len = weights.length;
+        const raw = weights.map((w) => total * w);
+        const rounded = raw.map((v) => Math.floor(v));
+        let diff = total - rounded.reduce((a, b) => a + b, 0);
+        // Distribute the remaining units by highest fractional parts
+        const fracIdx = raw
+          .map((v, i) => ({ i, f: v - Math.floor(v) }))
+          .sort((a, b) => b.f - a.f)
+          .map((o) => o.i);
+        for (let k = 0; k < diff; k++) {
+          rounded[fracIdx[k % len]] += 1;
+        }
+        return rounded;
+      }
+
+      // --------------------------
+      // Projects data enrichment
+      // --------------------------
+      function enrichProjectsWithFinancials() {
+        // For each project, generate: budget, spent, remaining, and deptBreakdown
+        sampleData.projects = sampleData.projects.map((p) => {
+          const budget = Math.round(getRandomNumber(3.8, 5.5) * 1e6); // ~3.8M-5.5M
+          const spent = Math.round(budget * getRandomNumber(0.55, 0.92)); // 55%-92%
+          const remaining = budget - spent;
+
+          // Departmental breakdown (weights across DEPARTMENTS)
+          const wBudget = randomPositiveArray(DEPARTMENTS.length);
+          const wSpentBase = wBudget.map((w) => w * getRandomNumber(0.9, 1.1)); // small variation
+          const sumWS = wSpentBase.reduce((a, b) => a + b, 0);
+          const wSpent = wSpentBase.map((v) => v / sumWS);
+
+          // Allocate per department using integer-safe allocation
+          // We'll allocate in units of 1 to keep totals exact; use dollars directly.
+          const deptBudgets = allocateByWeights(budget, wBudget);
+          const deptSpents = allocateByWeights(spent, wSpent);
+
+          const deptBreakdown = {};
+          DEPARTMENTS.forEach((d, i) => {
+            const db = deptBudgets[i];
+            const ds = Math.min(deptSpents[i], db); // never overspend department vs its budget
+            deptBreakdown[d] = {
+              budget: db,
+              spent: ds,
+              remaining: db - ds,
+            };
+          });
+
+          // Fix any rounding inconsistencies if min applied caused minor under-spend
+          const sumDeptBudget = Object.values(deptBreakdown).reduce(
+            (a, v) => a + v.budget,
+            0,
+          );
+          const sumDeptSpent = Object.values(deptBreakdown).reduce(
+            (a, v) => a + v.spent,
+            0,
+          );
+
+          // If department-level spent < total spent due to min clamp, add remainder to owning dept
+          const owning = p.dept || DEPARTMENTS[0];
+          if (sumDeptSpent < spent) {
+            const delta = spent - sumDeptSpent;
+            const cap =
+              deptBreakdown[owning].budget - deptBreakdown[owning].spent;
+            const add = Math.min(delta, cap);
+            deptBreakdown[owning].spent += add;
+            deptBreakdown[owning].remaining -= add;
+          }
+
+          return { ...p, budget, spent, remaining, deptBreakdown };
+        });
+      }
+
+      // --------------------------
+      // Projects rendering (All vs Detail)
+      // --------------------------
+      function initProjectDropdown() {
+        const select = document.getElementById("projectSelect");
+        // Clear any existing options except first
+        [...select.options].slice(1).forEach((o) => o.remove());
+        sampleData.projects.forEach((p, idx) => {
+          const opt = document.createElement("option");
+          opt.value = idx.toString();
+          opt.textContent = p.name;
+          select.appendChild(opt);
+        });
+        select.addEventListener("change", renderProjectsView);
+      }
+
+      function renderProjectsView() {
+        const container = document.getElementById("projectsContainer");
+        const selVal = document.getElementById("projectSelect").value;
+
+        if (selVal === "" || selVal === null) {
+          // ALL PROJECTS VIEW (no Department column)
+          const rows = sampleData.projects
+            .map((p) => {
+              return `
+                <tr>
+                  <td><strong>${p.name}</strong></td>
+                  <td class="money">$${formatMoney(p.budget)}</td>
+                  <td class="money">$${formatMoney(p.spent)}</td>
+                  <td class="money">$${formatMoney(p.remaining)}</td>
+                  <td><span class="status-badge status-${p.status}">${p.status.toUpperCase()}</span></td>
+                </tr>
+              `;
+            })
+            .join("");
+
+          container.innerHTML = `
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Full Budget</th>
+                  <th>Spent</th>
+                  <th>Remaining</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          `;
+        } else {
+          // SINGLE PROJECT DETAIL VIEW (with Department + departmental breakdown)
+          const p = sampleData.projects[parseInt(selVal, 10)];
+
+          const headerTable = `
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Budget</th>
+                  <th>Spent</th>
+                  <th>Remaining</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>${p.name}</strong></td>
+                  <td class="money">$${formatMoney(p.budget)}</td>
+                  <td class="money">$${formatMoney(p.spent)}</td>
+                  <td class="money">$${formatMoney(p.remaining)}</td>
+                  <td><span class="status-badge status-${p.status}">${p.status.toUpperCase()}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          `;
+
+          // Departmental breakdown rows
+          const deptRows = DEPARTMENTS.map((d) => {
+            const b = p.deptBreakdown[d];
+            return `
+              <tr>
+                <td>${d}</td>
+                <td class="money">$${formatMoney(b.budget)}</td>
+                <td class="money">$${formatMoney(b.spent)}</td>
+                <td class="money">$${formatMoney(b.remaining)}</td>
+              </tr>
+            `;
+          }).join("");
+
+          const breakdownTable = `
+            <div class="subheading">Departmental Budget Breakdown</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Department</th>
+                  <th>Budget</th>
+                  <th>Spent</th>
+                  <th>Remaining</th>
+                </tr>
+              </thead>
+              <tbody>${deptRows}</tbody>
+            </table>
+          `;
+
+          container.innerHTML = headerTable + breakdownTable;
+        }
+      }
+
+      // --------------------------
+      // Page lifecycle
+      // --------------------------
       document.addEventListener("DOMContentLoaded", () => {
         updateDate();
         initCounters();
         initCharts();
-        populateProjectsTable();
 
+        // Projects flow:
+        enrichProjectsWithFinancials();
+        initProjectDropdown();
+        renderProjectsView(); // initial render shows ALL projects
+
+        // Events for charts/KPIs
         document
           .getElementById("timeRange")
           .addEventListener("change", updateAllData);
         document
           .getElementById("departmentFilter")
           .addEventListener("change", () => {
-            filterProjects();
+            // Note: Department filter does NOT affect the Projects section
             updateAllData();
           });
       });
 
-      // Update date
+      // --------------------------
+      // Charts & KPI functions (unchanged behavior)
+      // --------------------------
       function updateDate() {
         const dateEl = document.querySelector(".date");
         const now = new Date();
@@ -498,13 +719,10 @@
         });
       }
 
-      // Initialize counters
       function initCounters() {
-        // Optional: animate counters on load
         updateKPIs();
       }
 
-      // Initialize charts
       function initCharts() {
         initRevenueChart();
         initProfitChart();
@@ -512,7 +730,6 @@
         initProjectStatusChart();
       }
 
-      // Create charts with initial data
       function initRevenueChart() {
         const ctx = document.getElementById("revenueChart").getContext("2d");
         revenueChart = new Chart(ctx, {
@@ -555,11 +772,7 @@
         return {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: {
-            legend: {
-              position: "top",
-            },
-          },
+          plugins: { legend: { position: "top" } },
           scales: {
             y: {
               beginAtZero: true,
@@ -635,22 +848,15 @@
           };
         }
       }
+
       function getDepartmentChartData() {
-        const departments = [
-          "Construction",
-          "Finance",
-          "Procurement",
-          "HR",
-          "IT",
-        ];
-
+        const departments = [...DEPARTMENTS];
         const data = departments.map(() => getRandomNumber(0.5, 2.0) * 1e6);
-
         return {
           labels: departments,
           datasets: [
             {
-              label: "Departments", // ← اضف السطر ده فقط
+              label: "Departments",
               data: data,
               backgroundColor: [
                 "#3b82f6",
@@ -681,44 +887,11 @@
         };
       }
 
-      function getRandomNumber(min, max) {
-        return Math.random() * (max - min) + min;
-      }
-
-      function populateProjectsTable() {
-        const tbody = document.getElementById("projectsTableBody");
-        tbody.innerHTML = "";
-
-        const selectedDept = document.getElementById("departmentFilter").value;
-        const filteredProjects = sampleData.projects.filter(
-          (p) =>
-            selectedDept === "all" || p.dept.toLowerCase() === selectedDept,
-        );
-
-        filteredProjects.forEach((p) => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td><strong>${p.name}</strong></td>
-            <td><span class="dept-badge">${p.dept}</span></td>
-            <td class="money">$4,200,000</td>
-            <td class="money">$3,800,000</td>
-            <td class="money">$400,000</td>
-            <td><span class="status-badge status-${p.status}">${p.status.toUpperCase()}</span></td>
-        `;
-          tbody.appendChild(row);
-        });
-      }
-
-      function filterProjects() {
-        populateProjectsTable();
-      }
-
       function updateAllData() {
         document
           .querySelectorAll(".chart-container")
           .forEach((c) => (c.style.opacity = "0.5"));
         setTimeout(() => {
-          // Update charts with new fake data
           revenueChart.data = getChartData("revenue");
           revenueChart.update();
 
@@ -731,41 +904,28 @@
           projectStatusChart.data = getProjectStatusData();
           projectStatusChart.update();
 
-          // Update KPIs dynamically
           updateKPIs();
 
-          // Update projects list
-          populateProjectsTable();
-
-          // Reset opacity
           document
             .querySelectorAll(".chart-container")
             .forEach((c) => (c.style.opacity = "1"));
         }, 300);
       }
 
-      // Update KPIs with animated numbers
       function updateKPIs() {
-        // Generate new data
         const totalRevenue = getRandomNumber(2.2, 2.6); // in millions
         const revenueChange = getRandomNumber(10, 15); // percentage
-
         const totalExpenses = getRandomNumber(1.6, 2.0);
         const expensesChange = getRandomNumber(7, 10);
-
         const netProfit = totalRevenue - totalExpenses;
         const profitChange = getRandomNumber(15, 20);
-
         const projectCompletion = getRandomNumber(80, 90);
         const completionChange = getRandomNumber(3, 5);
-
         const activeProjects = getRandomNumber(20, 25);
         const projectsChange = getRandomNumber(-3, 2);
-
         const yearlyGrowth = getRandomNumber(13, 17);
         const growthChange = getRandomNumber(4, 5);
 
-        // Animate the counters
         animateNumber("totalRevenue", totalRevenue * 1e6, "$", 1);
         animateNumber("totalExpenses", totalExpenses * 1e6, "$", 1);
         animateNumber("netProfit", netProfit * 1e6, "$", 1);
@@ -773,7 +933,6 @@
         animateNumber("activeProjects", activeProjects, "", 0);
         animateNumber("yearlyGrowth", yearlyGrowth, "%", 0);
 
-        // Update percentages
         document.getElementById("revenueChange").textContent =
           `+${revenueChange.toFixed(1)}%`;
         document.getElementById("expensesChange").textContent =
@@ -788,7 +947,6 @@
           `+${growthChange.toFixed(1)}%`;
       }
 
-      // Helper to animate number
       function animateNumber(id, target, suffix = "", decimalPlaces = 0) {
         const el = document.getElementById(id);
         const duration = 1000; // ms
@@ -801,14 +959,12 @@
           const progress = Math.min(elapsed / duration, 1);
           const current = start + range * progress;
           el.textContent = `${current.toFixed(decimalPlaces)}${suffix}`;
-          if (progress < 1) {
-            requestAnimationFrame(step);
-          }
+          if (progress < 1) requestAnimationFrame(step);
         }
         requestAnimationFrame(step);
       }
 
-      // Trigger initial KPI update
+      // Initial KPI tick
       updateKPIs();
     </script>
   </body>
