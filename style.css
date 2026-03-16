@@ -177,3 +177,33 @@
   background-size: 16px;
   padding-right: 40px;
 }
+
+.comparison-section {
+  margin-top: 20px;
+}
+
+.comparison-block {
+  margin-bottom: 30px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.comparison-table th,
+.comparison-table td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+
+.comparison-table th {
+  background: #f4f4f4;
+  font-weight: bold;
+}

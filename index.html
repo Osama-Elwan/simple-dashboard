@@ -300,6 +300,106 @@
         <canvas id="projectStatusChart"></canvas>
       </div>
     </div>
+    <h3 style="margin-top: 40px">Company Comparison</h3>
+
+    <div class="comparison-filter">
+      <label for="companySelect">Select Company:</label>
+      <select id="companySelect">
+        <option value="">-- Select --</option>
+        <option value="companyA">Company A</option>
+        <option value="companyB">Company B</option>
+        <option value="companyC">Company C</option>
+      </select>
+    </div>
+
+    <div id="comparisonContainer">
+      <!-- Company A Comparison -->
+      <div class="comparison-block" id="companyA" style="display: none">
+        <h4>Company A</h4>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Market Cap ($)</th>
+              <th>Number of Shares</th>
+              <th>Price per Share ($)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Company A</td>
+              <td>500,000,000</td>
+              <td>50,000,000</td>
+              <td>10</td>
+            </tr>
+            <tr>
+              <td>Your Company</td>
+              <td>100,000,000</td>
+              <td>50,000,000</td>
+              <td>2</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Company B Comparison -->
+      <div class="comparison-block" id="companyB" style="display: none">
+        <h4>Company B</h4>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Market Cap ($)</th>
+              <th>Number of Shares</th>
+              <th>Price per Share ($)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Company B</td>
+              <td>200,000,000</td>
+              <td>5,000,000</td>
+              <td>40</td>
+            </tr>
+            <tr>
+              <td>Your Company</td>
+              <td>100,000,000</td>
+              <td>5,000,000</td>
+              <td>20</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Company C Comparison -->
+      <div class="comparison-block" id="companyC" style="display: none">
+        <h4>Company C</h4>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Company</th>
+              <th>Market Cap ($)</th>
+              <th>Number of Shares</th>
+              <th>Price per Share ($)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Company C</td>
+              <td>1,000,000,000</td>
+              <td>100,000,000</td>
+              <td>10</td>
+            </tr>
+            <tr>
+              <td>Your Company</td>
+              <td>100,000,000</td>
+              <td>100,000,000</td>
+              <td>1</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
     <h3 style="margin-top: 40px">Projects</h3>
     <table>
@@ -317,6 +417,26 @@
     </table>
 
     <script>
+      document
+        .getElementById("companySelect")
+        .addEventListener("change", function () {
+          // Get selected value
+          const selected = this.value;
+
+          // All comparison blocks
+          const blocks = document.querySelectorAll(".comparison-block");
+
+          // Hide all blocks
+          blocks.forEach((block) => {
+            block.style.display = "none";
+          });
+
+          // Show selected block if any
+          if (selected) {
+            document.getElementById(selected).style.display = "block";
+          }
+        });
+
       const sampleData = {
         revenueExpenses: {
           labels: [
