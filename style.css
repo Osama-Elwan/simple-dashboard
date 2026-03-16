@@ -179,31 +179,98 @@
 }
 
 .comparison-section {
-  margin-top: 20px;
+  margin-top: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
 }
 
+/* Comparison Block Container */
 .comparison-block {
-  margin-bottom: 30px;
-  background: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  background: linear-gradient(to bottom right, #ffffff, #f9fbff);
+  padding: 25px;
+  border-radius: 12px;
+  border: 1px solid #d8e2f3;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
+.comparison-block:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.12);
+}
+
+/* Table Styling */
 .comparison-table {
   width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 15px;
+  font-size: 15px;
 }
 
-.comparison-table th,
-.comparison-table td {
-  padding: 10px;
-  border: 1px solid #ddd;
-  text-align: center;
-}
-
+/* Header */
 .comparison-table th {
-  background: #f4f4f4;
-  font-weight: bold;
+  background: #e8f0ff;
+  font-weight: 600;
+  padding: 12px;
+  border-bottom: 2px solid #c7d6f5;
+  text-align: center;
+  color: #2a3f6b;
+}
+
+/* Cells */
+.comparison-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e3e8f2;
+  text-align: center;
+  color: #333;
+}
+
+/* Zebra rows */
+.comparison-table tbody tr:nth-child(even) {
+  background: #f7faff;
+}
+
+/* Highlight Your Company Row */
+.comparison-table tbody tr:last-child {
+  background: #e9f9ee;
+  font-weight: 600;
+  color: #1d6b2f;
+}
+
+/* Hover effect */
+.comparison-table tbody tr:hover {
+  background: #eef5ff;
+  transition: background 0.2s ease;
+}
+
+/* Select dropdown styling */
+.comparison-filter {
+  margin-bottom: 20px;
+}
+
+#companySelect {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #b8c7e0;
+  background: #ffffff;
+  font-size: 15px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  color: #2a3f6b;
+}
+
+#companySelect:hover {
+  border-color: #7a9ad9;
+}
+
+#companySelect:focus {
+  outline: none;
+  border-color: #4a78d1;
+  box-shadow: 0 0 6px rgba(74, 120, 209, 0.4);
 }
